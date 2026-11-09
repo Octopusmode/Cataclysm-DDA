@@ -2749,6 +2749,7 @@ input_context get_default_mode_input_context()
     ctxt.register_action( "cast_spell" );
     ctxt.register_action( "recast_spell" );
     ctxt.register_action( "fire_burst" );
+    ctxt.register_action( "aimed_attack" );
     ctxt.register_action( "select_fire_mode" );
     ctxt.register_action( "select_default_ammo" );
     ctxt.register_action( "drop" );

@@ -1865,7 +1865,7 @@ static void aimed_attack()
         if( mon == nullptr || !mon->has_limb_model() ) {
             continue;
         }
-        if( critter->attitude_to( you ) != Creature::Attitude::HOSTILE ) {
+        if( critter->attitude_to( you ) == Creature::Attitude::FRIENDLY ) {
             continue;
         }
         if( reach == 1 && !you.is_adjacent( mon, true ) ) {
@@ -1891,6 +1891,11 @@ static void aimed_attack()
             return;
         }
         target = targets[static_cast<std::size_t>( sel )];
+    }
+
+    if( target->attitude_to( you ) != Creature::Attitude::HOSTILE &&
+        !query_yn( _( "Attack the %s?  It is not hostile." ), target->disp_name() ) ) {
+        return;
     }
 
     weakpoint_attack attack;
