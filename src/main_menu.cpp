@@ -917,6 +917,9 @@ bool main_menu::new_character_tab()
     avatar &pc = get_avatar();
     // Preset character templates
     if( sel2 == 1 ) {
+        // Rescan every time the list is opened: a template saved during the previous
+        // character creation would otherwise stay invisible until the game restarts.
+        load_char_templates();
         if( templates.empty() ) {
             on_error();
             popup( _( "No templates found!" ) );

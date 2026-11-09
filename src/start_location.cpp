@@ -313,10 +313,10 @@ std::pair<tripoint_abs_omt, std::unordered_map<std::string, std::string>>
     if( omtstart != tripoint_om_omt::min ) {
         return std::make_pair( project_combine( origin.pos_om, omtstart ), random_valid.second.parameters );
     }
-    // Should never happen, if it does we messed up.
-    popup( _( "Unable to generate a valid starting location %s [%s] in a city [%s], please report this failure." ),
-           name(), id.str(), origin.name );
-    return std::make_pair( tripoint_abs_omt::invalid, random_valid.second.parameters );
+    // Not every start location lives inside a city: evac shelters, for instance, are
+    // generated outside city limits and can never be found by the search above. Fall
+    // back to the overmap-wide search instead of failing the character creation.
+    return find_player_initial_location( origin.pos_om );
 }
 
 void start_location::set_parameters( const tripoint_abs_omt &omtstart,
