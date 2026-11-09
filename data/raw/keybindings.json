@@ -2662,7 +2662,10 @@
     "name": "Attack a chosen body part",
     "category": "DEFAULTMODE",
     "id": "aimed_attack",
-    "bindings": [ { "input_method": "keyboard_code", "key": "f", "mod": [ "ctrl" ] } ]
+    "bindings": [
+      { "input_method": "keyboard_char", "key": "CTRL+F" },
+      { "input_method": "keyboard_code", "key": "f", "mod": [ "ctrl" ] }
+    ]
   },
   {
     "type": "keybinding",
