@@ -400,8 +400,51 @@ class monster : public Creature
          */
         void set_hp( int hp );
 
-        /** Processes monster-specific effects before calling Creature::process_effects(). */
-        void process_effects() override;
+        /**
+         * True when this monster routes damage through a real anatomy
+         * (more than one limb). Single-limb maps keep the legacy behaviour.
+         */
+        bool has_limb_model() const;
+        /** Lazily distributes the current hp over the limb map. */
+        void ensure_limb_state();
+        /** Recomputes the cached hp from the per-limb hit points. */
+        void recalc_hp_from_limbs();
+        /** Index of the limb matching a weakpoint zone, or -1. */
+        int limb_for_weakpoint( const std::string &weakpoint ) const;
+        /**
+         * Capability remaining in a limb-score group, scaled by limb health.
+         * Returns 1.0 (unimpaired) for monsters without a real anatomy or
+         * without that score in their limb map.
+         */
+        float limb_score( const limb_score_id &id ) const;
+        /**
+         * False when the special attack needs a body part that is crippled,
+         * e.g. biting without a working jaw or grabbing without hands.
+         */
+        bool special_attack_allowed( const std::string &attack_name ) const;
+        /** True when a death condition of the limb map is satisfied. */
+        bool limb_model_lethal() const;
+        /** Applies localised damage; overflow spills into the torso. */
+        void apply_limb_damage( int limb, int dam );
+        /** Per-turn bleeding: fluid loss converted into hit point damage. */
+        void process_bleeding();
+
+        /** Per-limb hit points, empty when the limb model is not initialised. */
+        const std::vector<int> &get_limb_hp() const {
+            return limb_hp;
+        }
+        /** Per-limb bleeding intensity, in fluid units per turn. */
+        const std::vector<int> &get_limb_bleed() const {
+            return limb_bleed;
+        }
+        int get_fluid_cur() const {
+            return fluid_cur;
+        }
+        int get_fluid_max() const {
+            return fluid_max;
+        }
+
+        /** Processes monster-specific effects before calling Creature::process_effects(). */        void process_effects() override;
 
         /** Returns true if the monster has its movement impaired */
         bool movement_impaired();
@@ -414,6 +457,7 @@ class monster : public Creature
 
         float power_rating() const override;
         float speed_rating() const override;
+        int get_speed() const override;
 
         int get_worn_armor_val( const damage_type_id &dt ) const;
         int  get_armor_type( const damage_type_id &dt, bodypart_id bp ) const override;
@@ -627,6 +671,21 @@ class monster : public Creature
         void process_trigger( mon_trigger trig, const std::function<int()> &amount_func );
 
         int hp = 0;
+
+        // Limb-based damage accounting. Active only for monsters whose limb map
+        // has more than one limb; otherwise the classic single hp pool is used.
+        /** Per-limb hit points, parallel to type->limb_map->limbs. Empty = not initialised. */
+        std::vector<int> limb_hp;
+        /** Per-limb bleeding intensity, in fluid units per turn. */
+        std::vector<int> limb_bleed;
+        /** Remaining body fluid, in the same units as limb_bleed. */
+        int fluid_cur = 0;
+        int fluid_max = 0;
+        /** Limb index chosen by the last absorb_hit(), consumed by apply_damage(). */
+        int pending_hit_limb = -1;
+        /** Fractional carry of bleeding damage, so slow bleeds still hurt. */
+        float bleed_accum = 0.0f;
+
         std::map<std::string, mon_special_attack, std::less<>> special_attacks;
         std::optional<tripoint_abs_ms> goal;
         bool dead = false;

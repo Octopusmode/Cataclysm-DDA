@@ -77,6 +77,7 @@
 #include "mod_tileset.h"
 #include "monfaction.h"
 #include "mongroup.h"
+#include "monster_limb_map.h"
 #include "monstergenerator.h"
 #include "mood_face.h"
 #include "morale_types.h"
@@ -461,6 +462,8 @@ void DynamicDataLoader::initialize()
     add( "conduct", &achievement::load_achievement );
     add( "widget", &widget::load_widget );
     add( "weakpoint_set", &weakpoints::load_weakpoint_sets );
+    add( "monster_limb_map", &monster_limb_map::load_map );
+    add( "monster_fluid", &monster_fluid::load_fluid );
     add( "damage_type", &damage_type::load_damage_types );
     add( "damage_info_order", &damage_info_order::load_damage_info_orders );
     add( "mod_migration", &mod_migrations::load );
@@ -715,6 +718,8 @@ void DynamicDataLoader::unload_data()
     vpart_category::reset();
     vpart_migration::reset();
     weakpoints::reset();
+    monster_limb_map::reset();
+    monster_fluid::reset();
     weather_types::reset();
     widget::reset();
     zone_type::reset();
@@ -778,6 +783,10 @@ void DynamicDataLoader::finalize_loaded_data()
             { _( "Mapgen weights" ), &calculate_mapgen_weights },
             { _( "Mapgen parameters" ), &overmap_specials::finalize_mapgen_parameters },
             { _( "Behaviors" ), &behavior::finalize },
+            // Limb maps must be finalized before monster types, because
+            // finalize_mtypes() resolves mtype::limb_map from them.
+            { _( "Monster fluids" ), &monster_fluid::finalize_all },
+            { _( "Monster limb maps" ), &monster_limb_map::finalize_all },
             {
                 _( "Monster types" ), []()
                 {
@@ -900,6 +909,8 @@ void DynamicDataLoader::check_consistency()
             { _( "Body parts" ), &body_part_type::check_consistency },
             { _( "Body graphs" ), &bodygraph::check_all },
             { _( "Anatomies" ), &anatomy::check_consistency },
+            { _( "Monster fluids" ), &monster_fluid::check_consistency },
+            { _( "Monster limb maps" ), &monster_limb_map::check_consistency },
             { _( "Spells" ), &spell_type::check_consistency },
             { _( "Transformations" ), &event_transformation::check_consistency },
             { _( "Statistics" ), &event_statistic::check_consistency },

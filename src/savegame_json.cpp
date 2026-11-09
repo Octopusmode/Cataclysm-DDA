@@ -2521,6 +2521,23 @@ void monster::load( const JsonObject &data )
     }
     data.read( "hp", hp );
 
+    // Limb state is optional: saves from before the limb model, and monsters
+    // whose limb map is a single limb, simply keep the classic hp pool.
+    if( data.has_array( "limb_hp" ) ) {
+        limb_hp.clear();
+        data.read( "limb_hp", limb_hp );
+        limb_bleed.clear();
+        data.read( "limb_bleed", limb_bleed );
+        data.read( "fluid_cur", fluid_cur );
+        data.read( "fluid_max", fluid_max );
+        if( limb_bleed.size() != limb_hp.size() ) {
+            limb_bleed.assign( limb_hp.size(), 0 );
+        }
+        if( !limb_hp.empty() ) {
+            recalc_hp_from_limbs();
+        }
+    }
+
     // sp_timeout indicates an old save, prior to the special_attacks refactor
     if( data.has_array( "sp_timeout" ) ) {
         JsonArray parray = data.get_array( "sp_timeout" );
@@ -2656,6 +2673,12 @@ void monster::store( JsonOut &json ) const
         json.member( "next_patrol_point", next_patrol_point );
     }
     json.member( "hp", hp );
+    if( !limb_hp.empty() ) {
+        json.member( "limb_hp", limb_hp );
+        json.member( "limb_bleed", limb_bleed );
+        json.member( "fluid_cur", fluid_cur );
+        json.member( "fluid_max", fluid_max );
+    }
     json.member( "special_attacks", special_attacks );
     json.member( "friendly", friendly );
     json.member( "fish_population", fish_population );

@@ -885,7 +885,8 @@ void monster::move()
 
             // Cooldowns are decremented in monster::process_turn
 
-            if( local_attack_data.cooldown == 0 && !pacified && !is_hallucination() ) {
+            if( local_attack_data.cooldown == 0 && !pacified && !is_hallucination() &&
+                special_attack_allowed( special_name ) ) {
                 if( !sp_type.second->call( *this ) ) {
                     add_msg_debug( debugmode::DF_MATTACK, "Attack failed" );
                     continue;

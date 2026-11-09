@@ -2833,6 +2833,11 @@ class Character : public Creature, public visitable
         int cash = 0;
         weak_ptr_fast<Creature> last_target;
         std::optional<tripoint_abs_ms> last_target_pos;
+        /**
+         * Weakpoint zone the next attack should be forced onto, set by the
+         * aimed strike UI and consumed by the next melee or ranged attack.
+         */
+        std::string aimed_zone;
         // Save favorite ammo location
         item_location ammo_location;
         // FIXME: The presence of camps should be global objects, this should only be knowledge of camps (at best)

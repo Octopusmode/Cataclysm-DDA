@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "activity_actor_definitions.h"
+#include "aimed_strike_ui.h"
 #include "avatar.h"
 #include "ballistics.h"
 #include "bionics.h"
@@ -1092,6 +1093,8 @@ int Character::fire_gun( map &here, const tripoint_bub_ms &target, int shots, it
 
         weakpoint_attack wp_attack;
         wp_attack.weapon = &gun;
+        wp_attack.forced_zone = aimed_zone;
+        aimed_zone.clear();
         // get ammo_id in gun for event character_ranged_attacks_monster. If no ammo, use itype_id::NULL_ID()
         itype_id projectile_use_ammo_id = gun.has_ammo_data() ? gun.ammo_data()->get_id() :
                                           itype_id::NULL_ID();
@@ -1592,6 +1595,8 @@ dealt_projectile_attack Character::throw_item( const tripoint_bub_ms &target, co
     weakpoint_attack wp_attack;
     wp_attack.weapon = &to_throw;
     wp_attack.is_thrown = true;
+    wp_attack.forced_zone = aimed_zone;
+    aimed_zone.clear();
     dealt_projectile_attack dealt_attack;
     projectile_attack( dealt_attack, proj, throw_from, target, dispersion,
                        this, nullptr, wp_attack );
@@ -2244,6 +2249,9 @@ std::vector<aim_type> Character::get_aim_types( const item &gun ) const
                                         _( "[%c] to take precise aim and fire." ), true,
                                         *thresholds_it } );
     }
+    aim_types.push_back( aim_type { _( "Targeted" ), "TARGETED_SHOT",
+                                    _( "[%c] to aim at a body part." ), true,
+                                    static_cast<int>( MAX_RECOIL ) } );
     return aim_types;
 }
 
@@ -2888,6 +2896,43 @@ target_handler::trajectory target_ui::run()
             }
 
             action_drop_aim();
+        } else if( action == "TARGETED_SHOT" ) {
+            if( status != Status::Good ) {
+                continue;
+            }
+            if( !attack_was_confirmed && !confirm_non_enemy_target() ) {
+                continue;
+            }
+
+            const Creature *const aimed_at = get_creature_tracker().creature_at( dst );
+            const monster *const aimed_monster = aimed_at == nullptr ? nullptr :
+                                                 aimed_at->as_monster();
+            if( aimed_monster == nullptr || !aimed_monster->has_limb_model() ) {
+                add_msg( m_info, _( "You can't aim at specific parts of that." ) );
+                continue;
+            }
+
+            weakpoint_attack aim_attack;
+            aim_attack.source = you;
+            aim_attack.target = const_cast<monster *>( aimed_monster );
+            aim_attack.weapon = relevant;
+            aim_attack.type = weakpoint_attack::attack_type::PROJECTILE;
+            aim_attack.accuracy = 1.0;
+            aim_attack.compute_wp_skill();
+
+            const std::optional<std::string> zone = select_aimed_zone( *aimed_monster, aim_attack );
+            if( !zone.has_value() ) {
+                continue;  // cancelled by the player
+            }
+            you->aimed_zone = *zone;
+
+            if( action_aim_and_shoot( action ) ) {
+                loop_exit_code = ExitCode::Fire;
+            } else {
+                timed_out_action = action;
+                loop_exit_code = ExitCode::Timeout;
+            }
+            break;
         } else if( action == "AIMED_SHOT" || action == "CAREFUL_SHOT" || action == "PRECISE_SHOT" ) {
             if( status != Status::Good ) {
                 continue;

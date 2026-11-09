@@ -184,6 +184,8 @@ enum action_id : int {
     ACTION_FIRE,
     /** Burst-fire the current weapon */
     ACTION_FIRE_BURST,
+    /** Attack a chosen body part of a monster with a limb model */
+    ACTION_AIMED_ATTACK,
     /** Change fire mode of the current weapon */
     ACTION_SELECT_FIRE_MODE,
     /** Change default ammo for current weapon */

@@ -1,0 +1,90 @@
+[
+  {
+    "type": "monster_fluid",
+    "id": "mf_blood",
+    "name": "blood",
+    "hp_per_unit": 25,
+    "color": "red",
+    "field_on_ground": "fd_blood",
+    "clot_factor": 0.985,
+    "bleed_factor": 1.0,
+    "debuff_curve": [
+      0.7,
+      0.5,
+      0.3
+    ]
+  },
+  {
+    "type": "monster_fluid",
+    "id": "mf_ichor",
+    "name": "ichor",
+    "hp_per_unit": 40,
+    "color": "light_green",
+    "field_on_ground": "fd_blood_insect",
+    "clot_factor": 0.995,
+    "bleed_factor": 0.6,
+    "debuff_curve": [
+      0.5,
+      0.3,
+      0.15
+    ]
+  },
+  {
+    "type": "monster_fluid",
+    "id": "mf_acid",
+    "name": "acid",
+    "hp_per_unit": 20,
+    "color": "light_green",
+    "field_on_ground": "fd_acid",
+    "clot_factor": 0.99,
+    "bleed_factor": 1.2,
+    "debuff_curve": [
+      0.7,
+      0.5,
+      0.3
+    ]
+  },
+  {
+    "type": "monster_fluid",
+    "id": "mf_sap",
+    "name": "sap",
+    "hp_per_unit": 60,
+    "color": "brown",
+    "field_on_ground": "fd_sap",
+    "clot_factor": 0.999,
+    "bleed_factor": 0.4,
+    "debuff_curve": [
+      0.8,
+      0.6,
+      0.4
+    ]
+  },
+  {
+    "type": "monster_fluid",
+    "id": "mf_hydraulic",
+    "name": "hydraulic fluid",
+    "hp_per_unit": 15,
+    "color": "yellow",
+    "clot_factor": 0.998,
+    "bleed_factor": 0.8,
+    "debuff_curve": [
+      0.9,
+      0.6,
+      0.2
+    ]
+  },
+  {
+    "type": "monster_fluid",
+    "id": "mf_spore",
+    "name": "spores",
+    "hp_per_unit": 10,
+    "color": "light_gray",
+    "clot_factor": 0.99,
+    "bleed_factor": 0.3,
+    "debuff_curve": [
+      0.6,
+      0.4,
+      0.2
+    ]
+  }
+]

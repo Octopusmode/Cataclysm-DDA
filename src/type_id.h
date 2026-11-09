@@ -351,4 +351,10 @@ using weakpoints_id = string_id<weakpoints>;
 struct connect_group;
 using connect_group_id = string_id<connect_group>;
 
+struct monster_limb_map;
+using monster_limb_map_id = string_id<monster_limb_map>;
+
+struct monster_fluid;
+using monster_fluid_id = string_id<monster_fluid>;
+
 #endif // CATA_SRC_TYPE_ID_H

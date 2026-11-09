@@ -592,6 +592,17 @@ const weakpoint *weakpoints::select_weakpoint( const weakpoint_attack &attack ) 
                    attack.source == nullptr ? "nullptr" : attack.source->get_name(),
                    attack.weapon == nullptr ? "nullptr" : attack.weapon->type_name(),
                    attack.wp_skill, attack.accuracy );
+
+    // A deliberately aimed attack skips the roll entirely.
+    if( !attack.forced_zone.empty() ) {
+        for( const weakpoint &weakpoint : weakpoint_list ) {
+            if( weakpoint.id == attack.forced_zone && weakpoint.hit_chance( attack ) > 0.0f ) {
+                add_msg_debug( debugmode::DF_MONSTER, "Weakpoint Selection: forced zone %s",
+                               weakpoint.id );
+                return &weakpoint;
+            }
+        }
+    }
     float rolls = std::max( 1.0f, 1.0f + attack.wp_skill / 2.5f );
     // The base probability of hitting a more preferable weak point.
     float base = 0.0f;
@@ -625,6 +636,31 @@ const weakpoint *weakpoints::select_weakpoint( const weakpoint_attack &attack ) 
 void weakpoints::clear()
 {
     weakpoint_list.clear();
+}
+
+float weakpoints::hit_chance_of( const std::string &zone, const weakpoint_attack &attack ) const
+{
+    if( zone.empty() ) {
+        return 0.0f;
+    }
+    const float rolls = std::max( 1.0f, 1.0f + attack.wp_skill / 2.5f );
+    float base = 0.0f;
+    float reweighed = 0.0f;
+    for( const weakpoint &weakpoint : weakpoint_list ) {
+        const float raw_chance = weakpoint.hit_chance( attack );
+        if( raw_chance == 0.0f ) {
+            continue;
+        }
+        const float new_base = base + raw_chance;
+        const float new_reweighed = 100.0f * reweigh( new_base / 100.0f, rolls );
+        const float chance = new_reweighed - reweighed;
+        if( weakpoint.id == zone ) {
+            return std::max( 0.0f, chance );
+        }
+        base = new_base;
+        reweighed = new_reweighed;
+    }
+    return 0.0f;
 }
 
 void weakpoints::load( const JsonArray &ja )

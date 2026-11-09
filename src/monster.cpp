@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <list>
 #include <memory>
+#include <numeric>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -60,6 +61,7 @@
 #include "mondefense.h"
 #include "monfaction.h"
 #include "mongroup.h"
+#include "monster_limb_map.h"
 #include "mtype.h"
 #include "mutation.h"
 #include "npc.h"
@@ -218,6 +220,16 @@ static const trait_id trait_THRESH_MYCUS( "THRESH_MYCUS" );
 // The rough formula is 2^(-x), e.g. for x = 5 it's 0.03125 (~ 3%).
 static constexpr int UPGRADE_MAX_ITERS = 5;
 
+// Upper bound for bleeding intensity on a single limb, in fluid units per turn.
+static constexpr int MAX_LIMB_BLEED = 60;
+
+static const limb_score_id limb_score_attack( "attack" );
+static const limb_score_id limb_score_move_speed( "move_speed" );
+static const limb_score_id limb_score_reaction( "reaction" );
+static const limb_score_id limb_score_balance( "balance" );
+static const limb_score_id limb_score_bite( "bite" );
+static const limb_score_id limb_score_manip( "manip" );
+
 static const std::map<creature_size, translation> size_names {
     { creature_size::tiny, to_translation( "size adj", "tiny" ) },
     { creature_size::small, to_translation( "size adj", "small" ) },
@@ -326,6 +338,10 @@ monster::monster( const mtype_id &id ) : monster()
         }
     }
     aggro_character = type->aggro_character;
+
+    // Limb-based monsters start out intact; saving/loading overwrites this
+    // state when the save contains it.
+    ensure_limb_state();
 }
 
 monster::monster( const mtype_id &id, const tripoint_bub_ms &p ) : monster( id )
@@ -2079,6 +2095,9 @@ const weakpoint *monster::absorb_hit( const weakpoint_attack &attack, const body
     const weakpoint *wkpt = attack.accuracy == -1.0 ?
                             type->weakpoints.select_weakpoint( attack ) :
                             &wp;
+    // Remember which limb was hit so apply_damage() can localise the damage;
+    // deal_damage() always calls absorb_hit() immediately before it.
+    pending_hit_limb = wkpt == nullptr ? -1 : limb_for_weakpoint( wkpt->id );
     wkpt->apply_to( r );
     for( damage_unit &elem : dam.damage_units ) {
         adjust_taken_damage_by_enchantments( elem );
@@ -2146,6 +2165,7 @@ bool monster::melee_attack( Creature &target, float accuracy )
     }
 
     modify_damage_dealt_with_enchantments( damage );
+    damage.mult_damage( limb_score( limb_score_attack ) );
 
     dealt_damage_instance dealt_dam;
 
@@ -2358,11 +2378,35 @@ int monster::heal( const int delta_hp, bool overheal )
     if( delta_hp <= 0 || ( hp >= maxhp && !overheal ) ) {
         return 0;
     }
-
     const int old_hp = hp;
     hp += delta_hp;
     if( hp > maxhp && !overheal ) {
         hp = maxhp;
+    }
+    if( !limb_hp.empty() ) {
+        const int healed = hp - old_hp;
+        if( healed > 0 ) {
+            const monster_limb_map &map = *type->limb_map;
+            // Heal the most damaged limbs first, never above their own maximum.
+            std::vector<int> order( limb_hp.size() );
+            std::iota( order.begin(), order.end(), 0 );
+            std::sort( order.begin(), order.end(), [this, &map]( int a, int b ) {
+                const double max_a = std::max( 1.0, static_cast<double>( type->hp ) * map.limbs[a].hp_frac );
+                const double max_b = std::max( 1.0, static_cast<double>( type->hp ) * map.limbs[b].hp_frac );
+                return limb_hp[a] / max_a < limb_hp[b] / max_b;
+            } );
+            int left = healed;
+            for( const int i : order ) {
+                if( left <= 0 ) {
+                    break;
+                }
+                const int cap = static_cast<int>( std::lround( type->hp * map.limbs[i].hp_frac ) );
+                const int add = std::min( left, std::max( 0, cap - limb_hp[i] ) );
+                limb_hp[i] += add;
+                left -= add;
+            }
+            recalc_hp_from_limbs();
+        }
     }
     return hp - old_hp;
 }
@@ -2370,6 +2414,255 @@ int monster::heal( const int delta_hp, bool overheal )
 void monster::set_hp( const int hp )
 {
     this->hp = hp;
+    if( !limb_hp.empty() ) {
+        // Rescale limbs so that the sum matches the new value while keeping the
+        // damage distribution as close as possible.
+        const int old_total = std::accumulate( limb_hp.begin(), limb_hp.end(), 0 );
+        const int old_max = std::max( type->hp, 1 );
+        const double scale = static_cast<double>( hp ) / std::max( old_total, 1 );
+        int assigned = 0;
+        for( std::size_t i = 0; i < limb_hp.size(); ++i ) {
+            const int target = static_cast<int>( std::lround( old_max * type->limb_map->limbs[i].hp_frac ) );
+            const int scaled = std::clamp( static_cast<int>( std::lround( limb_hp[i] * scale ) ), 0, target );
+            limb_hp[i] = scaled;
+            assigned += scaled;
+        }
+        if( !limb_hp.empty() ) {
+            limb_hp[0] = std::max( 0, limb_hp[0] + ( hp - assigned ) );
+        }
+    }
+}
+
+bool monster::has_limb_model() const
+{
+    return type->limb_map != nullptr && type->limb_map->limbs.size() > 1;
+}
+
+void monster::ensure_limb_state()
+{
+    if( !limb_hp.empty() || !has_limb_model() ) {
+        return;
+    }
+    const monster_limb_map &map = *type->limb_map;
+    const int max_hp = std::max( type->hp, 1 );
+    limb_hp.assign( map.limbs.size(), 0 );
+    limb_bleed.assign( map.limbs.size(), 0 );
+
+    int assigned = 0;
+    for( std::size_t i = 0; i < map.limbs.size(); ++i ) {
+        limb_hp[i] = static_cast<int>( std::lround( max_hp * map.limbs[i].hp_frac ) );
+        assigned += limb_hp[i];
+    }
+    // Rounding remainder goes to the torso so that the sum matches exactly.
+    const auto torso_iter = map.limb_index.find( "torso" );
+    const int torso = torso_iter == map.limb_index.end() ? 0 : static_cast<int>( torso_iter->second );
+    limb_hp[torso] = std::max( 0, limb_hp[torso] + ( std::min( hp, max_hp ) - assigned ) );
+
+    if( !map.fluid.is_null() ) {
+        fluid_max = max_hp * 10;
+        fluid_cur = fluid_max;
+    } else {
+        fluid_max = 0;
+        fluid_cur = 0;
+    }
+    recalc_hp_from_limbs();
+}
+
+void monster::recalc_hp_from_limbs()
+{
+    if( limb_hp.empty() ) {
+        return;
+    }
+    hp = std::accumulate( limb_hp.begin(), limb_hp.end(), 0 );
+}
+
+int monster::limb_for_weakpoint( const std::string &weakpoint ) const
+{
+    return type->limb_map == nullptr ? -1 : type->limb_map->limb_for_weakpoint( weakpoint );
+}
+
+bool monster::special_attack_allowed( const std::string &attack_name ) const
+{
+    if( limb_hp.empty() || type->limb_map == nullptr ) {
+        return true;
+    }
+    // Attacks that need a specific body part are gated on the matching score.
+    const limb_score_id *required = nullptr;
+    if( attack_name.find( "bite" ) != std::string::npos ) {
+        required = &limb_score_bite;
+    } else if( attack_name.find( "grab" ) != std::string::npos ||
+               attack_name.find( "grasp" ) != std::string::npos ) {
+        required = &limb_score_manip;
+    }
+    if( required == nullptr ) {
+        return true;
+    }
+    return limb_score( *required ) >= 0.5f;
+}
+
+bool monster::limb_model_lethal() const
+{
+    if( limb_hp.empty() || type->limb_map == nullptr ) {
+        return false;
+    }
+    for( const monster_death_condition_data &condition : type->limb_map->death_conditions ) {
+        switch( condition.type ) {
+            case monster_death_condition::structure_zero:
+                if( hp <= 0 ) {
+                    return true;
+                }
+                break;
+            case monster_death_condition::limb_destroyed: {
+                const auto iter = type->limb_map->limb_index.find( condition.limb );
+                if( iter != type->limb_map->limb_index.end() &&
+                    limb_hp[iter->second] <= 0 ) {
+                    return true;
+                }
+                break;
+            }
+            case monster_death_condition::fluid_zero:
+                if( fluid_max > 0 && fluid_cur <= 0 ) {
+                    return true;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    return false;
+}
+
+float monster::limb_score( const limb_score_id &id ) const
+{
+    if( limb_hp.empty() || type->limb_map == nullptr ) {
+        return 1.0f;
+    }
+    const monster_limb_map &map = *type->limb_map;
+    float total = 0.0f;
+    bool has_score = false;
+    for( std::size_t i = 0; i < map.limbs.size() && i < limb_hp.size(); ++i ) {
+        const auto iter = map.limbs[i].scores.find( id );
+        if( iter == map.limbs[i].scores.end() ) {
+            continue;
+        }
+        has_score = true;
+        // Same curve as bodypart::wound_adjusted_limb_value(): no penalty while
+        // above 75% health, then linear down to zero.
+        const double max_hp = std::max( 1.0, static_cast<double>( type->hp ) * map.limbs[i].hp_frac );
+        const double percent = limb_hp[i] / max_hp;
+        const double factor = percent > 0.75 ? 1.0 : percent / 0.75;
+        total += static_cast<float>( iter->second * factor );
+    }
+    return has_score ? total : 1.0f;
+}
+
+void monster::apply_limb_damage( int limb, int dam )
+{
+    if( dam <= 0 || limb_hp.empty() ) {
+        return;
+    }
+    const int count = static_cast<int>( limb_hp.size() );
+    if( limb < 0 || limb >= count ) {
+        limb = 0;
+    }
+
+    // Damage the limb that was hit first, then spill the rest over the body:
+    // without this, hitting an already destroyed arm would never kill anything.
+    int remaining = dam;
+    const int direct = std::min( remaining, std::max( limb_hp[limb], 0 ) );
+    limb_hp[limb] -= direct;
+    remaining -= direct;
+
+    if( remaining > 0 ) {
+        const auto torso_iter = type->limb_map->limb_index.find( "torso" );
+        const int torso = torso_iter == type->limb_map->limb_index.end() ? -1 :
+                          static_cast<int>( torso_iter->second );
+
+        std::vector<int> order;
+        order.reserve( limb_hp.size() );
+        for( int i = 0; i < count; ++i ) {
+            if( i != limb && i != torso ) {
+                order.push_back( i );
+            }
+        }
+        std::stable_sort( order.begin(), order.end(),
+        [this]( int a, int b ) {
+            return limb_hp[a] > limb_hp[b];
+        } );
+        if( torso >= 0 && torso != limb ) {
+            order.insert( order.begin(), torso );
+        }
+
+        for( const int i : order ) {
+            if( remaining <= 0 ) {
+                break;
+            }
+            const int take = std::min( remaining, std::max( limb_hp[i], 0 ) );
+            limb_hp[i] -= take;
+            remaining -= take;
+        }
+    }
+    recalc_hp_from_limbs();
+
+    // Vital limbs and fluid loss can end the creature before its structure is
+    // gone, depending on the death conditions of its limb map.
+    if( limb_model_lethal() ) {
+        hp = 0;
+    }
+}
+
+void monster::process_bleeding()
+{
+    if( limb_bleed.empty() || fluid_max <= 0 ) {
+        return;
+    }
+    const monster_fluid &fluid = type->limb_map->fluid.obj();
+
+    int lost = 0;
+    for( int &bleed : limb_bleed ) {
+        if( bleed <= 0 ) {
+            continue;
+        }
+        lost += bleed;
+        bleed = static_cast<int>( std::floor( bleed * fluid.clot_factor ) );
+    }
+    if( lost <= 0 ) {
+        return;
+    }
+    fluid_cur = std::max( fluid_cur - lost, 0 );
+    if( fluid_cur == 0 ) {
+        // Nothing left to bleed out.
+        std::fill( limb_bleed.begin(), limb_bleed.end(), 0 );
+    }
+
+    bleed_accum += lost * fluid.hp_per_unit / 100.0f;
+    const int whole = static_cast<int>( std::floor( bleed_accum ) );
+    if( whole <= 0 ) {
+        return;
+    }
+    bleed_accum -= whole;
+
+    // Bleeding bypasses the limb that was hit: it drains the whole body.
+    const auto torso_iter = type->limb_map->limb_index.find( "torso" );
+    apply_limb_damage( torso_iter == type->limb_map->limb_index.end() ? 0 :
+                       static_cast<int>( torso_iter->second ), whole );
+    add_msg_debug( debugmode::DF_MONSTER,
+                   "%s bleeds: %d fluid lost, %d hp damage, %d/%d fluid left",
+                   get_name(), lost, whole, fluid_cur, fluid_max );
+
+    // An open wound leaves a trail, the same way a bleeding character does. The
+    // rate is deliberately sparse: this is a visual cue, not a damage source.
+    if( !fluid.field_on_ground.str().empty() && fluid.field_on_ground.is_valid() &&
+        lost >= 5 && one_in( 3 ) ) {
+        map &here = get_map();
+        here.add_field( pos_bub( here ), fluid.field_on_ground.id(),
+                        lost >= 30 ? 3 : ( lost >= 15 ? 2 : 1 ), 0_turns, false );
+    }
+
+    if( is_dead_state() ) {
+        map &here = get_map();
+        check_dead_state( &here );
+    }
 }
 
 void monster::apply_damage( Creature *source, bodypart_id /*bp*/, int dam,
@@ -2380,7 +2673,25 @@ void monster::apply_damage( Creature *source, bodypart_id /*bp*/, int dam,
     }
     // Ensure we can try to get at what hit us.
     reset_pathfinding_cd();
-    hp -= dam;
+
+    if( has_limb_model() ) {
+        ensure_limb_state();
+        const int limb = pending_hit_limb >= 0 ? pending_hit_limb : 0;
+        pending_hit_limb = -1;
+        apply_limb_damage( limb, dam );
+
+        // Wounds open only when the creature actually has a fluid to lose.
+        if( fluid_max > 0 && dam > 0 && limb >= 0 &&
+            limb < static_cast<int>( limb_bleed.size() ) ) {
+            const monster_fluid &fluid = type->limb_map->fluid.obj();
+            const monster_limb_entry &entry = type->limb_map->limbs[limb];
+            const float gain = dam * fluid.bleed_factor * entry.bleed_mult / 10.0f;
+            limb_bleed[limb] = std::min( limb_bleed[limb] + static_cast<int>( std::lround( gain ) ),
+                                         MAX_LIMB_BLEED );
+        }
+    } else {
+        hp -= dam;
+    }
 
     cata::event e = cata::event::make<event_type::monster_takes_damage>( dam, hp < 1 );
     if( source ) {
@@ -2642,7 +2953,7 @@ float monster::get_hit_base() const
 
 float monster::get_dodge_base() const
 {
-    return type->sk_dodge;
+    return type->sk_dodge * limb_score( limb_score_balance );
 }
 
 float monster::hit_roll() const
@@ -2652,7 +2963,7 @@ float monster::hit_roll() const
         hit /= 4;
     }
 
-    return melee::melee_hit_range( hit );
+    return melee::melee_hit_range( hit ) * limb_score( limb_score_reaction );
 }
 
 bool monster::has_grab_break_tec() const
@@ -2968,6 +3279,8 @@ void monster::process_turn()
             }
         }
     }
+
+    process_bleeding();
 
     Creature::process_turn();
 }
@@ -3835,6 +4148,16 @@ float monster::speed_rating() const
     }
 
     return ret;
+}
+
+int monster::get_speed() const
+{
+    const int base = Creature::get_speed();
+    if( limb_hp.empty() || type->limb_map == nullptr ) {
+        return base;
+    }
+    const float score = limb_score( limb_score_move_speed );
+    return score >= 1.0f ? base : std::max( 1, static_cast<int>( std::lround( base * score ) ) );
 }
 
 void monster::on_dodge( Creature *, float, float )

@@ -30,6 +30,7 @@
 #include "mondefense.h"
 #include "mongroup.h"
 #include "monster.h"
+#include "monster_limb_map.h"
 #include "mtype.h"
 #include "options.h"
 #include "pathfinding.h"
@@ -341,6 +342,20 @@ void MonsterGenerator::finalize_mtypes()
         apply_species_attributes( mon );
         validate_species_ids( mon );
         mon.size = volume_to_size( mon.volume );
+
+        // Resolve the limb map: explicit JSON field, then bodytype, then the
+        // single-limb fallback so that behaviour is unchanged for monsters
+        // without an anatomy of their own.
+        if( mon.limb_map_id.is_null() ) {
+            mon.limb_map_id = monster_limb_map::for_bodytype( mon.bodytype );
+        }
+        if( !mon.limb_map_id.is_null() && !mon.limb_map_id.is_valid() ) {
+            // Silently falling back would hide a typo in a mod's `limb_map` field.
+            debugmsg( "monster type '%s' refers to unknown limb map '%s'", mon.id.str(),
+                      mon.limb_map_id.str() );
+        }
+        mon.limb_map = mon.limb_map_id.is_valid() ? &mon.limb_map_id.obj() :
+                       &monster_limb_map::fallback();
 
         // adjust for worldgen difficulty parameters
         mon.speed *= get_option<int>( "MONSTER_SPEED" )      / 100.0;
@@ -789,6 +804,7 @@ void mtype::load( const JsonObject &jo, const std::string &src )
     jo.read( "looks_like", looks_like );
 
     assign( jo, "bodytype", bodytype );
+    optional( jo, was_loaded, "limb_map", limb_map_id );
     assign( jo, "color", color );
     assign( jo, "volume", volume, strict, 0_ml );
     assign( jo, "weight", weight, strict, 0_gram );

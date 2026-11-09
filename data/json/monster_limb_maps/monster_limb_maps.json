@@ -1,0 +1,904 @@
+[
+  {
+    "type": "monster_limb_map",
+    "id": "mlm_humanoid",
+    "//": "generated from wps_humanoid_body by tools/gen_monster_limb_maps.py; dropped zones: part_grabbing",
+    "fluid": "mf_blood",
+    "bodytypes": [
+      "human"
+    ],
+    "death_conditions": [
+      "structure_zero",
+      "head_destroyed"
+    ],
+    "limbs": [
+      {
+        "id": "torso",
+        "hp_frac": 0.4,
+        "hit_weight": 0,
+        "vital": true,
+        "scores": {
+          "balance": 0.7,
+          "breathing": 1.0
+        },
+        "graph_sym": "T",
+        "blood_frac": 0.5884
+      },
+      {
+        "id": "arm_l",
+        "hp_frac": 0.1,
+        "hit_weight": 4.0,
+        "weakpoint": "arm",
+        "parent": "torso",
+        "scores": {
+          "manip": 0.5,
+          "attack": 0.5,
+          "block": 0.5
+        },
+        "bleed_mult": 1.5,
+        "severable": true,
+        "severable_bleed_mult": 3,
+        "graph_sym": "A",
+        "blood_frac": 0.0784
+      },
+      {
+        "id": "arm_r",
+        "hp_frac": 0.1,
+        "hit_weight": 4.0,
+        "weakpoint": "arm",
+        "parent": "torso",
+        "scores": {
+          "manip": 0.5,
+          "attack": 0.5,
+          "block": 0.5
+        },
+        "bleed_mult": 1.5,
+        "severable": true,
+        "severable_bleed_mult": 3,
+        "graph_sym": "a",
+        "blood_frac": 0.0784
+      },
+      {
+        "id": "eye",
+        "hp_frac": 0.01,
+        "hit_weight": 1.0,
+        "weakpoint": "eye",
+        "is_head": true,
+        "parent": "head",
+        "scores": {
+          "senses": 0.5
+        },
+        "graph_sym": "e",
+        "blood_frac": 0.0049
+      },
+      {
+        "id": "head",
+        "hp_frac": 0.19,
+        "hit_weight": 5.0,
+        "weakpoint": "head",
+        "is_head": true,
+        "parent": "torso",
+        "vital": true,
+        "scores": {
+          "senses": 0.5,
+          "bite": 1.0,
+          "reaction": 0.15
+        },
+        "bleed_mult": 3.0,
+        "graph_sym": "@",
+        "blood_frac": 0.0931
+      },
+      {
+        "id": "leg_l",
+        "hp_frac": 0.1,
+        "hit_weight": 7.5,
+        "weakpoint": "leg",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.5,
+          "balance": 0.15
+        },
+        "bleed_mult": 1.2,
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "L",
+        "blood_frac": 0.0784
+      },
+      {
+        "id": "leg_r",
+        "hp_frac": 0.1,
+        "hit_weight": 7.5,
+        "weakpoint": "leg",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.5,
+          "balance": 0.15
+        },
+        "bleed_mult": 1.2,
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "r",
+        "blood_frac": 0.0784
+      }
+    ],
+    "rows": [
+      "     e e    ",
+      "    @@@@@   ",
+      "   AATTTaa  ",
+      "   AATTTaa  ",
+      "   AATTTaa  ",
+      "     TTT    ",
+      "     TTT    ",
+      "    L   r   ",
+      "    L   r   ",
+      "    L   r   "
+    ]
+  },
+  {
+    "type": "monster_limb_map",
+    "id": "mlm_quadruped",
+    "//": "generated from wps_animal_quadruped by tools/gen_monster_limb_maps.py; dropped zones: the chest, the vitals",
+    "fluid": "mf_blood",
+    "bodytypes": [
+      "dog",
+      "horse",
+      "pig",
+      "cow",
+      "bear",
+      "kangaroo",
+      "lizard",
+      "turtle"
+    ],
+    "death_conditions": [
+      "structure_zero",
+      "head_destroyed"
+    ],
+    "limbs": [
+      {
+        "id": "torso",
+        "hp_frac": 0.46,
+        "hit_weight": 0,
+        "vital": true,
+        "scores": {
+          "balance": 0.7
+        },
+        "graph_sym": "T",
+        "blood_frac": 0.6461
+      },
+      {
+        "id": "eye",
+        "hp_frac": 0.01,
+        "hit_weight": 1.0,
+        "weakpoint": "the eye",
+        "is_head": true,
+        "parent": "head",
+        "scores": {
+          "senses": 0.5
+        },
+        "graph_sym": "e",
+        "blood_frac": 0.0047
+      },
+      {
+        "id": "foreleg_l",
+        "hp_frac": 0.09,
+        "hit_weight": 4.0,
+        "weakpoint": "the leg",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.25,
+          "balance": 0.2
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "F",
+        "blood_frac": 0.0674
+      },
+      {
+        "id": "foreleg_r",
+        "hp_frac": 0.09,
+        "hit_weight": 4.0,
+        "weakpoint": "the leg",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.25,
+          "balance": 0.2
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "f",
+        "blood_frac": 0.0674
+      },
+      {
+        "id": "head",
+        "hp_frac": 0.17,
+        "hit_weight": 3.0,
+        "weakpoint": "the head",
+        "is_head": true,
+        "parent": "torso",
+        "vital": true,
+        "scores": {
+          "senses": 0.5,
+          "bite": 1.0,
+          "reaction": 0.15
+        },
+        "bleed_mult": 3.0,
+        "graph_sym": "@",
+        "blood_frac": 0.0796
+      },
+      {
+        "id": "hindleg_l",
+        "hp_frac": 0.09,
+        "hit_weight": 4.0,
+        "weakpoint": "the leg",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.25,
+          "balance": 0.2
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "H",
+        "blood_frac": 0.0674
+      },
+      {
+        "id": "hindleg_r",
+        "hp_frac": 0.09,
+        "hit_weight": 4.0,
+        "weakpoint": "the leg",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.25,
+          "balance": 0.2
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "h",
+        "blood_frac": 0.0674
+      }
+    ],
+    "rows": [
+      "     @e@    ",
+      "    TTTTT   ",
+      "   TTTTTTT  ",
+      "  F T   T f ",
+      "  F T   T f ",
+      "  H       h ",
+      "  H       h "
+    ]
+  },
+  {
+    "type": "monster_limb_map",
+    "id": "mlm_arthropod",
+    "//": "generated from wps_arthropod by tools/gen_monster_limb_maps.py; dropped zones: abdomen, armor_thick, body_joint, leg_joint",
+    "fluid": "mf_ichor",
+    "bodytypes": [
+      "insect",
+      "flying insect",
+      "spider",
+      "crab"
+    ],
+    "death_conditions": [
+      "structure_zero"
+    ],
+    "limbs": [
+      {
+        "id": "torso",
+        "hp_frac": 0.57,
+        "hit_weight": 0,
+        "scores": {
+          "balance": 0.7
+        },
+        "graph_sym": "B",
+        "blood_frac": 0.7533
+      },
+      {
+        "id": "antenna",
+        "hp_frac": 0.03,
+        "hit_weight": 3.0,
+        "weakpoint": "antenna",
+        "parent": "head",
+        "graph_sym": "A",
+        "blood_frac": 0.0079
+      },
+      {
+        "id": "eye",
+        "hp_frac": 0.01,
+        "hit_weight": 2.0,
+        "weakpoint": "eye",
+        "is_head": true,
+        "parent": "head",
+        "scores": {
+          "senses": 0.5
+        },
+        "graph_sym": "e",
+        "blood_frac": 0.0044
+      },
+      {
+        "id": "head",
+        "hp_frac": 0.12,
+        "hit_weight": 3.0,
+        "weakpoint": "head",
+        "is_head": true,
+        "parent": "torso",
+        "scores": {
+          "senses": 0.5,
+          "bite": 1.0,
+          "reaction": 0.15
+        },
+        "bleed_mult": 2.0,
+        "graph_sym": "H",
+        "blood_frac": 0.0529
+      },
+      {
+        "id": "leg_l",
+        "hp_frac": 0.125,
+        "hit_weight": 5.0,
+        "weakpoint": "leg",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.5,
+          "balance": 0.15
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "L",
+        "blood_frac": 0.0881
+      },
+      {
+        "id": "leg_r",
+        "hp_frac": 0.125,
+        "hit_weight": 5.0,
+        "weakpoint": "leg",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.5,
+          "balance": 0.15
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "r",
+        "blood_frac": 0.0881
+      },
+      {
+        "id": "mandible",
+        "hp_frac": 0.02,
+        "hit_weight": 2.0,
+        "weakpoint": "mandible",
+        "is_head": true,
+        "parent": "head",
+        "scores": {
+          "attack": 1.0
+        },
+        "graph_sym": "m",
+        "blood_frac": 0.0053
+      }
+    ],
+    "rows": [
+      "   A   A    ",
+      "    HHH     ",
+      "   HHeHH    ",
+      "    mmm     ",
+      "  L BBBBB r ",
+      "  L BBBBB r ",
+      "  L BBBBB r "
+    ]
+  },
+  {
+    "type": "monster_limb_map",
+    "id": "mlm_serpent",
+    "//": "generated from wps_arthropod by tools/gen_monster_limb_maps.py; dropped zones: abdomen, antenna, armor_thick, body_joint, leg, leg_joint",
+    "fluid": "mf_blood",
+    "bodytypes": [
+      "snake"
+    ],
+    "death_conditions": [
+      "structure_zero",
+      "head_destroyed"
+    ],
+    "limbs": [
+      {
+        "id": "torso",
+        "hp_frac": 0.8,
+        "hit_weight": 0,
+        "vital": true,
+        "scores": {
+          "move_speed": 1.0,
+          "balance": 0.7
+        },
+        "graph_sym": "B",
+        "blood_frac": 0.9288
+      },
+      {
+        "id": "eye",
+        "hp_frac": 0.01,
+        "hit_weight": 2.0,
+        "weakpoint": "eye",
+        "is_head": true,
+        "parent": "head",
+        "scores": {
+          "senses": 0.5
+        },
+        "graph_sym": "e",
+        "blood_frac": 0.0039
+      },
+      {
+        "id": "head",
+        "hp_frac": 0.15,
+        "hit_weight": 3.0,
+        "weakpoint": "head",
+        "is_head": true,
+        "parent": "torso",
+        "scores": {
+          "senses": 0.5,
+          "bite": 1.0,
+          "reaction": 0.15
+        },
+        "bleed_mult": 2.0,
+        "graph_sym": "H",
+        "blood_frac": 0.058
+      },
+      {
+        "id": "mandible",
+        "hp_frac": 0.04,
+        "hit_weight": 2.0,
+        "weakpoint": "mandible",
+        "is_head": true,
+        "parent": "head",
+        "scores": {
+          "attack": 1.0
+        },
+        "graph_sym": "m",
+        "blood_frac": 0.0093
+      }
+    ],
+    "rows": [
+      "    HHH     ",
+      "   HHe      ",
+      "   mmm      ",
+      "    BBB     ",
+      "   BBB      ",
+      "    BBBB    ",
+      "      BBB   "
+    ]
+  },
+  {
+    "type": "monster_limb_map",
+    "id": "mlm_blob",
+    "//": "generated from wps_slime by tools/gen_monster_limb_maps.py; dropped zones: body, fragment, insensitive_spot",
+    "fluid": "mf_ichor",
+    "bodytypes": [
+      "blob"
+    ],
+    "death_conditions": [
+      "structure_zero"
+    ],
+    "limbs": [
+      {
+        "id": "torso",
+        "hp_frac": 0.86,
+        "hit_weight": 0,
+        "scores": {
+          "move_speed": 1.0,
+          "balance": 0.7
+        },
+        "graph_sym": "B",
+        "blood_frac": 0.9308
+      },
+      {
+        "id": "organ",
+        "hp_frac": 0.06,
+        "hit_weight": 3.0,
+        "weakpoint": "organ",
+        "parent": "torso",
+        "graph_sym": "O",
+        "blood_frac": 0.0346
+      },
+      {
+        "id": "pseudopod",
+        "hp_frac": 0.08,
+        "hit_weight": 5.0,
+        "weakpoint": "pseudopod",
+        "parent": "torso",
+        "scores": {
+          "attack": 1.0
+        },
+        "graph_sym": "P",
+        "blood_frac": 0.0346
+      }
+    ],
+    "rows": [
+      "    BBBB    ",
+      "  BBBBBBBB  ",
+      " BBBBOBBBBB ",
+      " BBBBBBBBBB ",
+      "  PBBBBBBP  ",
+      "   P    P   "
+    ]
+  },
+  {
+    "type": "monster_limb_map",
+    "id": "mlm_amphibian",
+    "//": "generated from wps_amphibian_body by tools/gen_monster_limb_maps.py; dropped zones: belly, mouth_grabbing",
+    "fluid": "mf_blood",
+    "bodytypes": [
+      "frog"
+    ],
+    "death_conditions": [
+      "structure_zero",
+      "head_destroyed"
+    ],
+    "limbs": [
+      {
+        "id": "torso",
+        "hp_frac": 0.5,
+        "hit_weight": 0,
+        "vital": true,
+        "scores": {
+          "balance": 0.7
+        },
+        "graph_sym": "B",
+        "blood_frac": 0.6932
+      },
+      {
+        "id": "eye",
+        "hp_frac": 0.01,
+        "hit_weight": 3.0,
+        "weakpoint": "eye",
+        "is_head": true,
+        "parent": "head",
+        "scores": {
+          "senses": 0.5
+        },
+        "graph_sym": "e",
+        "blood_frac": 0.0046
+      },
+      {
+        "id": "foreleg_l",
+        "hp_frac": 0.1,
+        "hit_weight": 4.0,
+        "weakpoint": "foreleg",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.15,
+          "balance": 0.075
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "F",
+        "blood_frac": 0.0739
+      },
+      {
+        "id": "foreleg_r",
+        "hp_frac": 0.1,
+        "hit_weight": 4.0,
+        "weakpoint": "foreleg",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.15,
+          "balance": 0.075
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "f",
+        "blood_frac": 0.0739
+      },
+      {
+        "id": "head",
+        "hp_frac": 0.15,
+        "hit_weight": 10.0,
+        "weakpoint": "head",
+        "is_head": true,
+        "parent": "torso",
+        "scores": {
+          "senses": 0.5,
+          "reaction": 0.15
+        },
+        "bleed_mult": 2.0,
+        "graph_sym": "H",
+        "blood_frac": 0.0693
+      },
+      {
+        "id": "hindleg_l",
+        "hp_frac": 0.05,
+        "hit_weight": 4.0,
+        "weakpoint": "hindleg",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.35,
+          "balance": 0.075
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "G",
+        "blood_frac": 0.037
+      },
+      {
+        "id": "hindleg_r",
+        "hp_frac": 0.05,
+        "hit_weight": 4.0,
+        "weakpoint": "hindleg",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.35,
+          "balance": 0.075
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "g",
+        "blood_frac": 0.037
+      },
+      {
+        "id": "mouth",
+        "hp_frac": 0.04,
+        "hit_weight": 5.0,
+        "weakpoint": "mouth",
+        "is_head": true,
+        "parent": "head",
+        "scores": {
+          "bite": 1.0,
+          "attack": 1.0
+        },
+        "graph_sym": "m",
+        "blood_frac": 0.0111
+      }
+    ],
+    "rows": [
+      "    HHH     ",
+      "   HHeHH    ",
+      "    mmm     ",
+      " FfBBBBB    ",
+      " FfBBBBB    ",
+      "   Gg Gg    "
+    ]
+  },
+  {
+    "type": "monster_limb_map",
+    "id": "mlm_bird",
+    "//": "generated from wps_bird_body by tools/gen_monster_limb_maps.py; dropped zones: the belly",
+    "fluid": "mf_blood",
+    "bodytypes": [
+      "bird"
+    ],
+    "death_conditions": [
+      "structure_zero",
+      "head_destroyed"
+    ],
+    "limbs": [
+      {
+        "id": "torso",
+        "hp_frac": 0.62,
+        "hit_weight": 0,
+        "vital": true,
+        "scores": {
+          "balance": 0.7,
+          "move_speed": 0.4
+        },
+        "graph_sym": "B",
+        "blood_frac": 0.8151
+      },
+      {
+        "id": "eye",
+        "hp_frac": 0.01,
+        "hit_weight": 1.0,
+        "weakpoint": "the eye",
+        "is_head": true,
+        "parent": "head",
+        "scores": {
+          "senses": 0.5
+        },
+        "graph_sym": "e",
+        "blood_frac": 0.0044
+      },
+      {
+        "id": "head",
+        "hp_frac": 0.16,
+        "hit_weight": 3.0,
+        "weakpoint": "the head",
+        "is_head": true,
+        "parent": "torso",
+        "scores": {
+          "senses": 0.5,
+          "reaction": 0.15
+        },
+        "bleed_mult": 2.0,
+        "graph_sym": "H",
+        "blood_frac": 0.0701
+      },
+      {
+        "id": "wing_l",
+        "hp_frac": 0.105,
+        "hit_weight": 4.0,
+        "weakpoint": "the wing",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.3
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "W",
+        "blood_frac": 0.0552
+      },
+      {
+        "id": "wing_r",
+        "hp_frac": 0.105,
+        "hit_weight": 4.0,
+        "weakpoint": "the wing",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.3
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "w",
+        "blood_frac": 0.0552
+      }
+    ],
+    "rows": [
+      "    HHH     ",
+      "   HHe      ",
+      "  WWBBBww   ",
+      " WWWBBBwww  ",
+      "   BBBB     ",
+      "   BBBB     "
+    ]
+  },
+  {
+    "type": "monster_limb_map",
+    "id": "mlm_migo",
+    "//": "generated from wps_mi-go by tools/gen_monster_limb_maps.py; dropped zones: none",
+    "fluid": "mf_spore",
+    "bodytypes": [
+      "migo"
+    ],
+    "death_conditions": [
+      "structure_zero",
+      "head_destroyed"
+    ],
+    "limbs": [
+      {
+        "id": "torso",
+        "hp_frac": 0.42,
+        "hit_weight": 0,
+        "vital": true,
+        "scores": {
+          "balance": 0.7
+        },
+        "graph_sym": "B",
+        "blood_frac": 0.6082
+      },
+      {
+        "id": "arm_l",
+        "hp_frac": 0.1,
+        "hit_weight": 3.0,
+        "weakpoint": "arm",
+        "parent": "torso",
+        "scores": {
+          "manip": 0.5,
+          "attack": 0.5,
+          "block": 0.5
+        },
+        "severable": true,
+        "severable_bleed_mult": 3,
+        "graph_sym": "A",
+        "blood_frac": 0.0772
+      },
+      {
+        "id": "arm_r",
+        "hp_frac": 0.1,
+        "hit_weight": 3.0,
+        "weakpoint": "arm",
+        "parent": "torso",
+        "scores": {
+          "manip": 0.5,
+          "attack": 0.5,
+          "block": 0.5
+        },
+        "severable": true,
+        "severable_bleed_mult": 3,
+        "graph_sym": "a",
+        "blood_frac": 0.0772
+      },
+      {
+        "id": "head",
+        "hp_frac": 0.14,
+        "hit_weight": 5.0,
+        "weakpoint": "head",
+        "is_head": true,
+        "parent": "torso",
+        "scores": {
+          "senses": 1.0,
+          "bite": 1.0,
+          "reaction": 0.15
+        },
+        "bleed_mult": 2.0,
+        "graph_sym": "H",
+        "blood_frac": 0.0676
+      },
+      {
+        "id": "leg_l",
+        "hp_frac": 0.1,
+        "hit_weight": 7.5,
+        "weakpoint": "leg",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.4,
+          "balance": 0.15
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "L",
+        "blood_frac": 0.0772
+      },
+      {
+        "id": "leg_r",
+        "hp_frac": 0.1,
+        "hit_weight": 7.5,
+        "weakpoint": "leg",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.4,
+          "balance": 0.15
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "r",
+        "blood_frac": 0.0772
+      },
+      {
+        "id": "wing_l",
+        "hp_frac": 0.02,
+        "hit_weight": 1.0,
+        "weakpoint": "wing",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.1
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "W",
+        "blood_frac": 0.0077
+      },
+      {
+        "id": "wing_r",
+        "hp_frac": 0.02,
+        "hit_weight": 1.0,
+        "weakpoint": "wing",
+        "parent": "torso",
+        "scores": {
+          "move_speed": 0.1
+        },
+        "severable": true,
+        "severable_bleed_mult": 2,
+        "graph_sym": "w",
+        "blood_frac": 0.0077
+      }
+    ],
+    "rows": [
+      "   WW  ww   ",
+      "    HHH     ",
+      "  A BBBBB a ",
+      "  A BBBBB a ",
+      "   LBBBBB   ",
+      "   L     r  ",
+      "   L     r  "
+    ]
+  },
+  {
+    "type": "monster_limb_map",
+    "id": "mlm_single",
+    "//": "Fallback: one limb, behaves exactly like the pre-limb-model monster",
+    "fluid": "mf_blood",
+    "death_conditions": [
+      "structure_zero"
+    ],
+    "limbs": [
+      {
+        "id": "body",
+        "hit_weight": 100,
+        "hp_frac": 1.0,
+        "blood_frac": 1.0,
+        "vital": true
+      }
+    ]
+  }
+]

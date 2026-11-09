@@ -1,0 +1,26 @@
+[
+  {
+    "type": "limb_score",
+    "id": "attack",
+    "name": "Attacking",
+    "affected_by_wounds": true,
+    "affected_by_encumb": false,
+    "//": "Melee damage contribution of a limb. Used by monster limb maps."
+  },
+  {
+    "type": "limb_score",
+    "id": "bite",
+    "name": "Biting",
+    "affected_by_wounds": true,
+    "affected_by_encumb": false,
+    "//": "Bite and mandible attacks. Used by monster limb maps."
+  },
+  {
+    "type": "limb_score",
+    "id": "senses",
+    "name": "Senses",
+    "affected_by_wounds": true,
+    "affected_by_encumb": false,
+    "//": "Perception-based capabilities of a limb (eyes, head, antennae). Used by monster limb maps."
+  }
+]

@@ -18,6 +18,7 @@
 #include "enum_bitset.h"
 #include "magic.h"
 #include "mattack_common.h"
+#include "monster_limb_map.h"
 #include "pathfinding.h"
 #include "shearing.h"
 #include "translation.h"
@@ -442,6 +443,11 @@ struct mtype {
     public:
         monster_death_effect mdeath_effect;
         ::weakpoints weakpoints;
+
+        /** Limb map declared by JSON, if any. Resolved into `limb_map` on finalize. */
+        monster_limb_map_id limb_map_id;
+        /** Anatomy used for localised damage; never null after finalize. */
+        const monster_limb_map *limb_map = nullptr;
 
     private:
         ::weakpoints weakpoints_deferred_inline;

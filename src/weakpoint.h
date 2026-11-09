@@ -56,6 +56,11 @@ struct weakpoint_attack {
     bool is_crit;
     // The Creature's skill in hitting weak points.
     float wp_skill;
+    /**
+     * Zone the attacker deliberately aimed at, if any. A non-empty value makes
+     * weakpoints::select_weakpoint() respect the choice instead of rolling.
+     */
+    std::string forced_zone;
 
     weakpoint_attack();
     // Returns the attack type of a melee attack.
@@ -184,6 +189,11 @@ struct weakpoints {
 
     // Selects a weakpoint to hit.
     const weakpoint *select_weakpoint( const weakpoint_attack &attack ) const;
+    /**
+     * Chance (0..100) that an attack with the given parameters lands on the
+     * given zone, normalised the same way as select_weakpoint().
+     */
+    float hit_chance_of( const std::string &zone, const weakpoint_attack &attack ) const;
 
     void clear();
     // load inline definition

@@ -12,6 +12,7 @@
 #include "action.h"
 #include "activity_actor_definitions.h"
 #include "advanced_inv.h"
+#include "aimed_strike_ui.h"
 #include "auto_note.h"
 #include "auto_pickup.h"
 #include "avatar.h"
@@ -99,6 +100,7 @@
 #include "vehicle.h"
 #include "vpart_position.h"
 #include "vpart_range.h"
+#include "weakpoint.h"
 #include "weather.h"
 #include "weather_type.h"
 #include "worldfactory.h"
@@ -1834,6 +1836,86 @@ static void fire()
     }
 }
 
+static void aimed_attack()
+{
+    avatar &you = get_avatar();
+
+    if( you.has_flag( json_flag_CANNOT_ATTACK ) ) {
+        add_msg( m_info, _( "You are incapable of attacking!" ) );
+        return;
+    }
+    if( !you.try_break_relax_gas( _( "Your willpower asserts itself, and so do you!" ),
+                                  _( "You're too pacified to strike anything…" ) ) ) {
+        return;
+    }
+
+    const item_location weapon = you.get_wielded_item();
+    if( weapon && weapon->is_gun() && !weapon->gun_current_mode().melee() ) {
+        add_msg( m_info, _( "Use the \"Targeted\" fire mode while aiming a gun instead." ) );
+        return;
+    }
+
+    const int reach = weapon && !weapon->is_gun() ? weapon->reach_range( you ) :
+                      std::max( 1, static_cast<int>( you.calculate_by_enchantment(
+                                     1, enchant_vals::mod::MELEE_RANGE_MODIFIER ) ) );
+
+    std::vector<monster *> targets;
+    for( Creature *critter : you.get_targetable_creatures( reach, true ) ) {
+        monster *const mon = critter->as_monster();
+        if( mon == nullptr || !mon->has_limb_model() ) {
+            continue;
+        }
+        if( critter->attitude_to( you ) != Creature::Attitude::HOSTILE ) {
+            continue;
+        }
+        if( reach == 1 && !you.is_adjacent( mon, true ) ) {
+            continue;
+        }
+        targets.push_back( mon );
+    }
+
+    if( targets.empty() ) {
+        add_msg( m_info, _( "There is no creature in reach with parts you can aim at." ) );
+        return;
+    }
+
+    monster *target = targets.front();
+    if( targets.size() > 1 ) {
+        std::vector<std::string> options;
+        options.reserve( targets.size() );
+        for( const monster *mon : targets ) {
+            options.push_back( mon->disp_name() );
+        }
+        const int sel = uilist( _( "Attack which creature?" ), options );
+        if( sel < 0 ) {
+            return;
+        }
+        target = targets[static_cast<std::size_t>( sel )];
+    }
+
+    weakpoint_attack attack;
+    attack.source = &you;
+    attack.target = target;
+    attack.weapon = weapon ? &*weapon : nullptr;
+    // The preview cannot know the final damage mix, so it uses the most common
+    // melee type; anatomy data rarely distinguishes between bash, cut and stab.
+    attack.type = weakpoint_attack::attack_type::MELEE_BASH;
+    attack.accuracy = 1.0;
+    attack.compute_wp_skill();
+
+    const std::optional<std::string> zone = select_aimed_zone( *target, attack );
+    if( !zone.has_value() ) {
+        return;
+    }
+    you.aimed_zone = *zone;
+
+    if( you.is_adjacent( target, true ) ) {
+        you.melee_attack( *target, true );
+    } else {
+        you.reach_attack( target->pos_bub() );
+    }
+}
+
 static void open_movement_mode_menu()
 {
     avatar &player_character = get_avatar();
@@ -2670,6 +2752,10 @@ bool game::do_regular_action( action_id &act, avatar &player_character,
 
         case ACTION_FIRE:
             fire();
+            break;
+
+        case ACTION_AIMED_ATTACK:
+            aimed_attack();
             break;
 
         case ACTION_CAST_SPELL:

@@ -2659,6 +2659,13 @@
   },
   {
     "type": "keybinding",
+    "name": "Attack a chosen body part",
+    "category": "DEFAULTMODE",
+    "id": "aimed_attack",
+    "bindings": [ { "input_method": "keyboard_code", "key": "f", "mod": [ "ctrl" ] } ]
+  },
+  {
+    "type": "keybinding",
     "name": "Toggle attack mode of wielded item",
     "category": "DEFAULTMODE",
     "id": "select_fire_mode",

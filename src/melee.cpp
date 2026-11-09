@@ -592,6 +592,10 @@ bool Character::melee_attack_abstract( Creature &t, bool allow_special,
 
     recalculate_enchantment_cache();
 
+    // A called shot applies to this attack only, whether it hits or misses.
+    const std::string aimed = aimed_zone;
+    aimed_zone.clear();
+
     melee::melee_stats.attack_count += 1;
     int hit_spread = t.deal_melee_attack( this, hit_roll() );
     if( !t.is_avatar() ) {
@@ -833,6 +837,7 @@ bool Character::melee_attack_abstract( Creature &t, bool allow_special,
             }
             weakpoint_attack attack;
             attack.weapon = &cur_weap;
+            attack.forced_zone = aimed;
             t.deal_melee_hit( this, hit_spread, critical_hit, d, dealt_dam, attack, &target_bp );
 
             bool has_edged_damage = false;
